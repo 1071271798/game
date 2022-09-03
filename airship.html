@@ -1,0 +1,994 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>舰队飞船选择器</title>
+    <style>
+        table {
+            margin-top: 20px;
+            line-height: 24px;
+            border-top-color: #000;
+            border-collapse: collapse;
+            border-bottom-color: #000;
+            border-right-color: #000;
+            border-left-color: #000;
+            font-weight: bold;
+            width: 95%;
+            margin: auto;
+        }
+        table thead th {
+            color: #1E9FFF;
+        }
+
+        button{
+            display: inline-block;
+            height: 38px;
+            line-height: 38px;
+            padding: 0 18px;
+            background-color: #1E9FFF;
+            color: #fff;
+            white-space: nowrap;
+            text-align: center;
+            font-size: 14px;
+            border: none;
+            border-radius: 2px;
+            cursor: pointer;
+            width: 120px;
+        }
+
+        .text-c{
+            text-align:center
+        }
+
+        .input{
+            text-align:center;
+            width: 100%;
+            line-height: 24px;
+            border: none;
+            background-color: #9698ec;
+        }
+
+        .checked {
+            background-color: #0abf5b;
+        }
+    </style>
+</head>
+
+<body>
+<div id="app">
+    <div style="margin: 20px">
+        <div @click = 'instructionsShow = instructionsShow == false ? true :false'>
+            <div>
+                使用说明：<red-span>(点击此处显示/隐藏)</red-span>
+            </div>
+            <div style="margin-left: 50px" v-show = 'instructionsShow' >
+                0、<red-span>本工具用于配置外域舰队飞船选择</red-span>
+                1、点击飞船列表<red-span>表头</red-span>可进行排序，根据<red-span>选择顺序</red-span>确定优先级<br/>
+            </div>
+
+        </div>
+    </div>
+	<div>
+		<div style="margin: 20px">当前总属性</div>
+        <table border="1">
+            <thead>
+            <tr class="text-c">
+                <th>火力</th>
+                <th>装甲</th>
+                <th>机动</th>
+                <th>幸运</th>
+                <th>总和</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="text-c">
+                <td><input type="text" class="input" v-model = "myAttri['huo']"></td>
+                <td><input type="text" class="input" v-model = "myAttri['jia']"></td>
+                <td><input type="text" class="input" v-model = "myAttri['ji']"></td>
+                <td><input type="text" class="input" v-model = "myAttri['xing']"></td>
+                <td>{{myTotalAttri}}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+	<div>
+		<div style="margin: 20px">当前飞船属性</div>
+        <table border="1">
+            <thead>
+            <tr class="text-c">
+                <th>火力</th>
+                <th>装甲</th>
+                <th>机动</th>
+                <th>幸运</th>
+                <th>总和</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="text-c">
+                <td><input type="text" class="input" v-model = "myShipAttri['huo']"></td>
+                <td><input type="text" class="input" v-model = "myShipAttri['jia']"></td>
+                <td><input type="text" class="input" v-model = "myShipAttri['ji']"></td>
+                <td><input type="text" class="input" v-model = "myShipAttri['xing']"></td>
+                <td>{{myTotalShipAttri}}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div>
+        <div style="margin: 20px">已选择方案统计：</div>
+        <table border="1">
+            <thead>
+            <tr class="text-c">
+                <th>方案</th>
+				<th>排序规则</th>
+				<th>飞船数量</th>
+				<th>飞船火力</th>
+                <th>飞船装甲</th>
+                <th>飞船机动</th>
+				<th>飞船幸运</th>
+                <th>飞船总和</th>
+                <th>总火力</th>
+                <th>总装甲</th>
+                <th>总机动</th>
+                <th>总幸运</th>
+                <th>总和</th>
+            </tr>
+            </thead>
+            <tbody>
+			<tr class="text-c" v-for="(plan, index) in recordPlan" @click="choosePlan(plan)" :class="{checked:checkedPlan == plan}">
+                <td>{{index + 1}}</td>
+                <td>{{plan.sortText}}</td>
+                <td>{{plan.shipChecked.length}}</td>
+                <td>
+					<template>
+						<span v-if="plan.shipHuo - plan.myShipAttri['huo'] < 0" style="color:red;">{{plan.shipHuo}} ({{plan.shipHuo - plan.myShipAttri['huo']}})</span>
+						<span v-if="plan.shipHuo - plan.myShipAttri['huo'] > 0" style="color:green;">{{plan.shipHuo}} (+{{plan.shipHuo - plan.myShipAttri['huo']}})</span>
+						<span v-if="plan.shipHuo - plan.myShipAttri['huo'] == 0">{{plan.shipHuo}}</span>
+					</template></td>
+				<td><template>
+						<span v-if="plan.shipJia - plan.myShipAttri['jia'] < 0" style="color:red;">{{plan.shipJia}} ({{plan.shipJia - plan.myShipAttri['jia']}})</span>
+						<span v-if="plan.shipJia - plan.myShipAttri['jia'] > 0" style="color:green;">{{plan.shipJia}} (+{{plan.shipJia - plan.myShipAttri['jia']}})</span>
+						<span v-if="plan.shipJia - plan.myShipAttri['jia'] == 0">{{plan.shipJia}}</span>
+					</template></td>
+                <td><template>
+						<span v-if="plan.shipJi - plan.myShipAttri['ji'] < 0" style="color:red;">{{plan.shipJi}} ({{plan.shipJi - plan.myShipAttri['ji']}})</span>
+						<span v-if="plan.shipJi - plan.myShipAttri['ji'] > 0" style="color:green;">{{plan.shipJi}} (+{{plan.shipJi - plan.myShipAttri['ji']}})</span>
+						<span v-if="plan.shipJi - plan.myShipAttri['ji'] == 0">{{plan.shipJi}}</span>
+					</template></td>
+				<td><template>
+						<span v-if="plan.shipXing - plan.myShipAttri['xing'] < 0" style="color:red;">{{plan.shipXing}} ({{plan.shipXing - plan.myShipAttri['xing']}})</span>
+						<span v-if="plan.shipXing - plan.myShipAttri['xing'] > 0" style="color:green;">{{plan.shipXing}} (+{{plan.shipXing - plan.myShipAttri['xing']}})</span>
+						<span v-if="plan.shipXing - plan.myShipAttri['xing'] == 0">{{plan.shipXing}}</span>
+					</template></td>
+				<td><template>
+						<span v-if="plan.shipSum - plan.myShipAttri['sum'] < 0" style="color:red;">{{plan.shipSum}} ({{plan.shipSum - plan.myShipAttri['sum']}})</span>
+						<span v-if="plan.shipSum - plan.myShipAttri['sum'] > 0" style="color:green;">{{plan.shipSum}} (+{{plan.shipSum - plan.myShipAttri['sum']}})</span>
+						<span v-if="plan.shipSum - plan.myShipAttri['sum'] == 0">{{plan.shipSum}}</span>
+					</template></td>
+				<td>
+					<template>
+						<span v-if="plan.shipHuo - plan.myShipAttri['huo'] < 0" style="color:red;">{{plan.shipHuo + plan.myAttri['huo'] - plan.myShipAttri['huo']}} ({{plan.shipHuo - plan.myShipAttri['huo']}})</span>
+						<span v-if="plan.shipHuo - plan.myShipAttri['huo'] > 0" style="color:green;">{{plan.shipHuo + plan.myAttri['huo'] - plan.myShipAttri['huo']}} (+{{plan.shipHuo - plan.myShipAttri['huo']}})</span>
+						<span v-if="plan.shipHuo - plan.myShipAttri['huo'] == 0">{{plan.shipHuo + plan.myAttri['huo'] - plan.myShipAttri['huo']}}</span>
+					</template></td>
+                <td><template>
+						<span v-if="plan.shipJia - plan.myShipAttri['jia'] < 0" style="color:red;">{{plan.shipJia + plan.myAttri['jia'] - plan.myShipAttri['jia']}} ({{plan.shipJia - plan.myShipAttri['jia']}})</span>
+						<span v-if="plan.shipJia - plan.myShipAttri['jia'] > 0" style="color:green;">{{plan.shipJia + plan.myAttri['jia'] - plan.myShipAttri['jia']}} (+{{plan.shipJia - plan.myShipAttri['jia']}})</span>
+						<span v-if="plan.shipJia - plan.myShipAttri['jia'] == 0">{{plan.shipJia + plan.myAttri['jia'] - plan.myShipAttri['jia']}}</span>
+					</template></td>
+                <td><template>
+						<span v-if="plan.shipJi - plan.myShipAttri['ji'] < 0" style="color:red;">{{plan.shipJi + plan.myAttri['ji'] - plan.myShipAttri['ji']}} ({{plan.shipJi - plan.myShipAttri['ji']}})</span>
+						<span v-if="plan.shipJi - plan.myShipAttri['ji'] > 0" style="color:green;">{{plan.shipJi + plan.myAttri['ji'] - plan.myShipAttri['ji']}} (+{{plan.shipJi - plan.myShipAttri['ji']}})</span>
+						<span v-if="plan.shipJi - plan.myShipAttri['ji'] == 0">{{plan.shipJi + plan.myAttri['ji'] - plan.myShipAttri['ji']}}</span>
+					</template></td>
+				<td><template>
+						<span v-if="plan.shipXing - plan.myShipAttri['xing'] < 0" style="color:red;">{{plan.shipXing + plan.myAttri['xing'] - plan.myShipAttri['xing']}} ({{plan.shipXing - plan.myShipAttri['xing']}})</span>
+						<span v-if="plan.shipXing - plan.myShipAttri['xing'] > 0" style="color:green;">{{plan.shipXing + plan.myAttri['xing'] - plan.myShipAttri['xing']}} (+{{plan.shipXing - plan.myShipAttri['xing']}})</span>
+						<span v-if="plan.shipXing - plan.myShipAttri['xing'] == 0">{{plan.shipXing + plan.myAttri['xing'] - plan.myShipAttri['xing']}}</span>
+					</template></td>
+				<td><template>
+						<span v-if="plan.shipSum - plan.myShipAttri['sum'] < 0" style="color:red;">{{plan.shipSum + plan.myAttri['sum'] - plan.myShipAttri['sum']}} ({{plan.shipSum - plan.myShipAttri['sum']}})</span>
+						<span v-if="plan.shipSum - plan.myShipAttri['sum'] > 0" style="color:green;">{{plan.shipSum + plan.myAttri['sum'] - plan.myShipAttri['sum']}} (+{{plan.shipSum - plan.myShipAttri['sum']}})</span>
+						<span v-if="plan.shipSum - plan.myShipAttri['sum'] == 0">{{plan.shipSum + plan.myAttri['sum'] - plan.myShipAttri['sum']}}</span>
+					</template></td>	
+            </tr>
+            </tbody>
+        </table>
+		<div style="margin: 20px">
+            <button @click="deletePlan(checkedPlan)">删除方案</button>           
+            <button @click="deletePlanSelectedShip(checkedPlan)">剔除飞船</button>
+            <button @click="viewPlan(checkedPlan)">查看方案</button>
+            <button @click="usedPlan(checkedPlan)">使用该方案</button>
+            <button @click="clearPlan()">清除所有方案</button>
+        </div>
+		<div style="margin: 20px">已选择的飞船属性统计：</div>
+        <table border="1">
+            <thead>
+            <tr class="text-c">
+				<th>飞船数量</th>
+                <th>飞船火力</th>
+                <th>飞船装甲</th>
+                <th>飞船机动</th>
+				<th>飞船幸运</th>
+                <th>飞船总和</th>
+				<th>总火力</th>
+                <th>总装甲</th>
+                <th>总机动</th>
+                <th>总幸运</th>
+                <th>总和</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="text-c">
+                <td>{{selectedshipcount}}</td>
+                <td>
+					<template>
+						<span v-if="selectedshiphuo - myShipAttri['huo'] < 0" style="color:red;">{{selectedshiphuo}} ({{selectedshiphuo - myShipAttri['huo']}})</span>
+						<span v-if="selectedshiphuo - myShipAttri['huo'] > 0" style="color:green;">{{selectedshiphuo}} (+{{selectedshiphuo - myShipAttri['huo']}})</span>
+						<span v-if="selectedshiphuo - myShipAttri['huo'] == 0">{{selectedshiphuo}}</span>
+					</template></td>
+                <td><template>
+						<span v-if="selectedshipjia - myShipAttri['jia'] < 0" style="color:red;">{{selectedshipjia}} ({{selectedshipjia - myShipAttri['jia']}})</span>
+						<span v-if="selectedshipjia - myShipAttri['jia'] > 0" style="color:green;">{{selectedshipjia}} (+{{selectedshipjia - myShipAttri['jia']}})</span>
+						<span v-if="selectedshipjia - myShipAttri['jia'] == 0">{{selectedshipjia}}</span>
+					</template></td>
+                <td><template>
+						<span v-if="selectedshipji - myShipAttri['ji'] < 0" style="color:red;">{{selectedshipji}} ({{selectedshipji - myShipAttri['ji']}})</span>
+						<span v-if="selectedshipji - myShipAttri['ji'] > 0" style="color:green;">{{selectedshipji}} (+{{selectedshipji - myShipAttri['ji']}})</span>
+						<span v-if="selectedshipji - myShipAttri['ji'] == 0">{{selectedshipji}}</span>
+					</template></td>
+				<td><template>
+						<span v-if="selectedshipxing - myShipAttri['xing'] < 0" style="color:red;">{{selectedshipxing}} ({{selectedshipxing - myShipAttri['xing']}})</span>
+						<span v-if="selectedshipxing - myShipAttri['xing'] > 0" style="color:green;">{{selectedshipxing}} (+{{selectedshipxing - myShipAttri['xing']}})</span>
+						<span v-if="selectedshipxing - myShipAttri['xing'] == 0">{{selectedshipxing}}</span>
+					</template></td>
+				<td><template>
+						<span v-if="selectedshipsum - myTotalShipAttri < 0" style="color:red;">{{selectedshipsum}} ({{selectedshipsum - myTotalShipAttri}})</span>
+						<span v-if="selectedshipsum - myTotalShipAttri > 0" style="color:green;">{{selectedshipsum}} (+{{selectedshipsum - myTotalShipAttri}})</span>
+						<span v-if="selectedshipsum - myTotalShipAttri == 0">{{selectedshipsum}}</span>
+					</template></td>
+				<td>
+					<template>
+						<span v-if="selectedshipTotalhuo - myAttri['huo'] < 0" style="color:red;">{{selectedshipTotalhuo}} ({{selectedshipTotalhuo - myAttri['huo']}})</span>
+						<span v-if="selectedshipTotalhuo - myAttri['huo'] > 0" style="color:green;">{{selectedshipTotalhuo}} (+{{selectedshipTotalhuo - myAttri['huo']}})</span>
+						<span v-if="selectedshipTotalhuo - myAttri['huo'] == 0">{{selectedshipTotalhuo}}</span>
+					</template></td>
+                <td><template>
+						<span v-if="selectedshipTotaljia - myAttri['jia'] < 0" style="color:red;">{{selectedshipTotaljia}} ({{selectedshipTotaljia - myAttri['jia']}})</span>
+						<span v-if="selectedshipTotaljia - myAttri['jia'] > 0" style="color:green;">{{selectedshipTotaljia}} (+{{selectedshipTotaljia - myAttri['jia']}})</span>
+						<span v-if="selectedshipTotaljia - myAttri['jia'] == 0">{{selectedshipTotaljia}}</span>
+					</template></td>
+                <td><template>
+						<span v-if="selectedshipTotalji - myAttri['ji'] < 0" style="color:red;">{{selectedshipTotalji}} ({{selectedshipTotalji - myAttri['ji']}})</span>
+						<span v-if="selectedshipTotalji - myAttri['ji'] > 0" style="color:green;">{{selectedshipTotalji}} (+{{selectedshipTotalji - myAttri['ji']}})</span>
+						<span v-if="selectedshipTotalji - myAttri['ji'] == 0">{{selectedshipTotalji}}</span>
+					</template></td>
+				<td><template>
+						<span v-if="selectedshipTotalxing - myAttri['xing'] < 0" style="color:red;">{{selectedshipTotalxing}} ({{selectedshipTotalxing - myAttri['xing']}})</span>
+						<span v-if="selectedshipTotalxing - myAttri['xing'] > 0" style="color:green;">{{selectedshipTotalxing}} (+{{selectedshipTotalxing - myAttri['xing']}})</span>
+						<span v-if="selectedshipTotalxing - myAttri['xing'] == 0">{{selectedshipTotalxing}}</span>
+					</template></td>
+				<td><template>
+						<span v-if="selectedshipTotalsum - myTotalAttri < 0" style="color:red;">{{selectedshipTotalsum}} ({{selectedshipTotalsum - myTotalAttri}})</span>
+						<span v-if="selectedshipTotalsum - myTotalAttri > 0" style="color:green;">{{selectedshipTotalsum}} (+{{selectedshipTotalsum - myTotalAttri}})</span>
+						<span v-if="selectedshipTotalsum - myTotalAttri == 0">{{selectedshipTotalsum}}</span>
+					</template></td>	
+            </tr>
+            </tbody>
+        </table>
+        <div style="margin: 20px">
+            <button @click="chooseMany()">选择下10项</button>           
+            <button @click="chooseMany(1, 39)">选择下39项</button>
+            <button @click="chooseMany(0)">取消上10项</button>
+            <button @click="chooseMany(0, 39)">取消上39项</button>
+			<button @click="addCurrentChoose">记录该方案</button>
+			<button @click="usedCurrentChoose">使用该方案</button>
+			<button @click="clearAllChoose">清空选择</button>
+			<button @click="clearSortKey">清除排序</button>
+			<button @click="recoverDefaultShipList">恢复飞船列表</button>
+        </div>
+    </div>
+
+    <div style="margin-top: 20px">
+        <table border="1">
+            <thead>
+            <tr class="text-c">
+<!--                <th></th>-->
+				<th>id</th>
+                <th>飞船名称</th>
+                <th @click="sortBySelect('huo')" :class="{checked:findIndex(shipSortKey, 'huo') > -1}">
+					<template>
+						<span v-if="findIndex(shipSortKey, 'huo') > -1" style="color:black;">火力↓{{findIndex(shipSortKey, 'huo') + 1}}</span>
+						<span v-if="findIndex(shipSortKey, 'huo') <= -1">火力</span>						
+					</template>
+				</th>
+                <th @click="sortBySelect('jia')" :class="{checked:findIndex(shipSortKey, 'jia') > -1}">
+					<template>
+						<span v-if="findIndex(shipSortKey, 'jia') > -1" style="color:black;">装甲↓{{findIndex(shipSortKey, 'jia') + 1}}</span>
+						<span v-if="findIndex(shipSortKey, 'jia') <= -1">装甲</span>						
+					</template>
+				</th>
+                <th @click="sortBySelect('ji')" :class="{checked:findIndex(shipSortKey, 'ji') > -1}">
+					<template>
+						<span v-if="findIndex(shipSortKey, 'ji') > -1" style="color:black;">机动↓{{findIndex(shipSortKey, 'ji') + 1}}</span>
+						<span v-if="findIndex(shipSortKey, 'ji') <= -1">机动</span>						
+					</template>
+				</th>
+                <th @click="sortBySelect('xing')" :class="{checked:findIndex(shipSortKey, 'xing') > -1}">
+					<template>
+						<span v-if="findIndex(shipSortKey, 'xing') > -1" style="color:black;">幸运↓{{findIndex(shipSortKey, 'xing') + 1}}</span>
+						<span v-if="findIndex(shipSortKey, 'xing') <= -1">幸运</span>						
+					</template>
+				</th>
+                <th @click="sortBySelect('huojia')" :class="{checked:findIndex(shipSortKey, 'huojia') > -1}">
+					<template>
+						<span v-if="findIndex(shipSortKey, 'huojia') > -1" style="color:black;">火甲↓{{findIndex(shipSortKey, 'huojia') + 1}}</span>
+						<span v-if="findIndex(shipSortKey, 'huojia') <= -1">火甲</span>						
+					</template>
+				</th>
+                <th @click="sortBySelect('huoji')" :class="{checked:findIndex(shipSortKey, 'huoji') > -1}">
+					<template>
+						<span v-if="findIndex(shipSortKey, 'huoji') > -1" style="color:black;">火机↓{{findIndex(shipSortKey, 'huoji') + 1}}</span>
+						<span v-if="findIndex(shipSortKey, 'huoji') <= -1">火机</span>						
+					</template>
+				</th>
+                <th @click="sortBySelect('jiaji')" :class="{checked:findIndex(shipSortKey, 'jiaji') > -1}">
+					<template>
+						<span v-if="findIndex(shipSortKey, 'jiaji') > -1" style="color:black;">甲机↓{{findIndex(shipSortKey, 'jiaji') + 1}}</span>
+						<span v-if="findIndex(shipSortKey, 'jiaji') <= -1">甲机</span>						
+					</template>
+				</th>
+				<th @click="sortBySelect('jiaxing')" :class="{checked:findIndex(shipSortKey, 'jiaxing') > -1}">
+					<template>
+						<span v-if="findIndex(shipSortKey, 'jiaxing') > -1" style="color:black;">甲幸↓{{findIndex(shipSortKey, 'jiaxing') + 1}}</span>
+						<span v-if="findIndex(shipSortKey, 'jiaxing') <= -1">甲幸</span>						
+					</template>
+				</th>
+                <th @click="sortBySelect('huojiaji')" :class="{checked:findIndex(shipSortKey, 'huojiaji') > -1}">
+					<template>
+						<span v-if="findIndex(shipSortKey, 'huojiaji') > -1" style="color:black;">火甲机↓{{findIndex(shipSortKey, 'huojiaji') + 1}}</span>
+						<span v-if="findIndex(shipSortKey, 'huojiaji') <= -1">火甲机</span>						
+					</template>
+				</th>
+				<th @click="sortBySelect('huojiaxing')" :class="{checked:findIndex(shipSortKey, 'huojiaxing') > -1}">
+					<template>
+						<span v-if="findIndex(shipSortKey, 'huojiaxing') > -1" style="color:black;">火甲幸↓{{findIndex(shipSortKey, 'huojiaxing') + 1}}</span>
+						<span v-if="findIndex(shipSortKey, 'huojiaxing') <= -1">火甲幸</span>						
+					</template>
+				</th>
+				<th @click="sortBySelect('sum')" :class="{checked:findIndex(shipSortKey, 'sum') > -1}">
+					<template>
+						<span v-if="findIndex(shipSortKey, 'sum') > -1" style="color:black;">总和↓{{findIndex(shipSortKey, 'sum') + 1}}</span>
+						<span v-if="findIndex(shipSortKey, 'sum') <= -1">总和</span>						
+					</template>
+				</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="text-c" v-for="index in shipSort" @click="chooseOne(ship[index])" :class="{checked:findIndex(checked, ship[index]) > -1}">
+<!--                <td><input type="checkbox" name="ship" v-model="checked" :value="item" style="width: 100%;min-width:20px" @click.stop=""></td>-->
+                <td>{{ship[index].id}}</td>
+				<td>{{ship[index].name}}</td>
+                <td>{{ship[index].huo}}</td>
+                <td>{{ship[index].jia}}</td>
+                <td>{{ship[index].ji}}</td>
+                <td>{{ship[index].xing}}</td>
+				<td>{{ship[index].huo + ship[index].jia}}</td>
+                <td>{{ship[index].huo + ship[index].ji}}</td>
+                <td>{{ship[index].jia + ship[index].ji}}</td>
+				<td>{{ship[index].jia + ship[index].xing}}</td>
+				<td>{{ship[index].huo + ship[index].jia + ship[index].ji}}</td>
+				<td>{{ship[index].huo + ship[index].jia + ship[index].xing}}</td>
+				<td>{{ship[index].huo + ship[index].jia + ship[index].ji+ ship[index].xing}}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+<script src="https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+<script>
+    Vue.component('red-span', {
+        data: function () {
+            return {
+                count: 0
+            }
+        },
+        template: `
+        <span style="color: red">
+            <slot></slot>
+        </span>
+        `
+    });
+    let vue = new Vue({
+        el: '#app',
+        data: {
+            ship:[
+                {'id':1,'name':'冈布奥号','huo':28,'jia':28,'ji':26,'xing':25,'sum':107},
+				{'id':2,'name':'大和丸','huo':23,'jia':38,'ji':28,'xing':18,'sum':107},
+				{'id':3,'name':'恶魔丸','huo':36,'jia':35,'ji':18,'xing':18,'sum':107},
+				{'id':4,'name':'武藏丸','huo':33,'jia':18,'ji':23,'xing':33,'sum':107},
+				{'id':5,'name':'加勒比号','huo':33,'jia':23,'ji':23,'xing':28,'sum':107},
+				{'id':6,'name':'圆桌骑士','huo':19,'jia':38,'ji':31,'xing':19,'sum':107},
+				{'id':7,'name':'路西法之剑','huo':28,'jia':23,'ji':33,'xing':25,'sum':109},
+				{'id':8,'name':'宇宙大帝','huo':33,'jia':33,'ji':20,'xing':23,'sum':109},
+				{'id':9,'name':'普罗米修斯','huo':21,'jia':27,'ji':33,'xing':28,'sum':109},
+				{'id':10,'name':'死星','huo':28,'jia':18,'ji':38,'xing':28,'sum':112},
+				{'id':11,'name':'宇宙隼','huo':23,'jia':28,'ji':28,'xing':35,'sum':114},
+				{'id':12,'name':'钢铁之拳','huo':33,'jia':23,'ji':33,'xing':18,'sum':107},
+				{'id':13,'name':'奇美拉之翼','huo':25,'jia':23,'ji':26,'xing':33,'sum':107},
+				{'id':14,'name':'邪眼暴君','huo':43,'jia':18,'ji':33,'xing':18,'sum':112},
+				{'id':15,'name':'阴影之龙','huo':43,'jia':23,'ji':18,'xing':28,'sum':112},
+				{'id':16,'name':'达拉蒙特斯','huo':23,'jia':23,'ji':25,'xing':43,'sum':114},
+				{'id':17,'name':'科技球','huo':28,'jia':33,'ji':23,'xing':23,'sum':107},
+				{'id':18,'name':'永恒之塔','huo':27,'jia':27,'ji':28,'xing':27,'sum':109},
+				{'id':19,'name':'蒙特祖玛','huo':33,'jia':19,'ji':19,'xing':38,'sum':109},
+				{'id':20,'name':'阿拉斯托','huo':28,'jia':23,'ji':30,'xing':28,'sum':109},
+				{'id':21,'name':'走私者号','huo':33,'jia':23,'ji':33,'xing':20,'sum':109},
+				{'id':22,'name':'联盟号','huo':25,'jia':33,'ji':28,'xing':23,'sum':109},
+				{'id':23,'name':'地精号','huo':33,'jia':28,'ji':28,'xing':20,'sum':109},
+				{'id':24,'name':'元素大陆','huo':28,'jia':27,'ji':26,'xing':33,'sum':114},
+				{'id':25,'name':'冰封王座','huo':25,'jia':33,'ji':23,'xing':28,'sum':109},
+				{'id':26,'name':'永恒王座','huo':21,'jia':33,'ji':27,'xing':28,'sum':109},
+				{'id':27,'name':'夜翼','huo':23,'jia':25,'ji':33,'xing':28,'sum':109},
+				{'id':28,'name':'秘法蜗牛','huo':25,'jia':33,'ji':18,'xing':33,'sum':109},
+				{'id':29,'name':'环游者','huo':23,'jia':25,'ji':28,'xing':38,'sum':114},
+				{'id':30,'name':'浮游','huo':38,'jia':20,'ji':28,'xing':28,'sum':114},
+				{'id':31,'name':'王虫','huo':23,'jia':30,'ji':38,'xing':23,'sum':114},
+				{'id':32,'name':'UFO','huo':33,'jia':25,'ji':28,'xing':23,'sum':109},
+				{'id':33,'name':'虚空鳐','huo':28,'jia':28,'ji':20,'xing':38,'sum':114},
+				{'id':34,'name':'贝希摩斯之角','huo':28,'jia':35,'ji':23,'xing':23,'sum':109},
+				{'id':35,'name':'贝希摩斯之翼','huo':23,'jia':23,'ji':35,'xing':28,'sum':109},
+				{'id':36,'name':'贝希摩斯之爪','huo':35,'jia':23,'ji':28,'xing':23,'sum':109},
+				{'id':37,'name':'贝希摩斯之心','huo':23,'jia':28,'ji':23,'xing':35,'sum':109},
+				{'id':38,'name':'贝希摩斯','huo':28,'jia':28,'ji':28,'xing':28,'sum':112},
+				{'id':39,'name':'立方体','huo':28,'jia':27,'ji':27,'xing':27,'sum':109},
+				{'id':40,'name':'赫拉','huo':33,'jia':23,'ji':33,'xing':23,'sum':112},
+				{'id':41,'name':'轨道卫星','huo':28,'jia':28,'ji':38,'xing':20,'sum':114},
+				{'id':42,'name':'六重天','huo':23,'jia':23,'ji':33,'xing':30,'sum':109},
+				{'id':43,'name':'伊甸1号','huo':23,'jia':32,'ji':29,'xing':25,'sum':109},
+				{'id':44,'name':'伊甸2号','huo':23,'jia':32,'ji':29,'xing':25,'sum':109},
+				{'id':45,'name':'伊甸3号','huo':23,'jia':32,'ji':29,'xing':25,'sum':109},
+				{'id':46,'name':'维京战机','huo':32,'jia':31,'ji':23,'xing':28,'sum':114},
+				{'id':47,'name':'伊甸4号','huo':23,'jia':33,'ji':25,'xing':28,'sum':109},
+				{'id':48,'name':'歼星舰','huo':27,'jia':23,'ji':31,'xing':31,'sum':112},
+				{'id':49,'name':'战列巡航舰','huo':38,'jia':28,'ji':23,'xing':28,'sum':117},
+				{'id':50,'name':'蝉鸣护卫舰','huo':31,'jia':30,'ji':28,'xing':25,'sum':114},
+				{'id':51,'name':'星空护卫舰','huo':27,'jia':35,'ji':20,'xing':27,'sum':109},
+				{'id':52,'name':'辐射幽浮','huo':33,'jia':20,'ji':28,'xing':28,'sum':109},
+				{'id':53,'name':'医疗运输机','huo':23,'jia':30,'ji':28,'xing':28,'sum':109},
+				{'id':54,'name':'天使之翼','huo':27,'jia':20,'ji':27,'xing':35,'sum':109},
+				{'id':55,'name':'维尔狄蒙','huo':23,'jia':28,'ji':23,'xing':40,'sum':114},
+				{'id':56,'name':'虚空风暴','huo':33,'jia':28,'ji':23,'xing':30,'sum':114},
+				{'id':57,'name':'救赎之盾','huo':23,'jia':35,'ji':23,'xing':28,'sum':109},
+				{'id':58,'name':'夜轮号','huo':23,'jia':25,'ji':28,'xing':33,'sum':109},
+				{'id':59,'name':'云舰','huo':28,'jia':23,'ji':35,'xing':23,'sum':109},
+				{'id':60,'name':'祈并者熵船','huo':33,'jia':28,'ji':25,'xing':23,'sum':109},
+				{'id':61,'name':'切割者-MR','huo':30,'jia':30,'ji':23,'xing':26,'sum':109},
+				{'id':62,'name':'星际穿越者','huo':23,'jia':25,'ji':33,'xing':28,'sum':109},
+				{'id':63,'name':'暴虐鲛鲨','huo':40,'jia':20,'ji':27,'xing':27,'sum':114},
+				{'id':64,'name':'瓦尔基里','huo':28,'jia':26,'ji':25,'xing':30,'sum':109},
+				{'id':65,'name':'支配者号','huo':33,'jia':28,'ji':23,'xing':30,'sum':114},
+				{'id':66,'name':'菲尼克斯','huo':28,'jia':28,'ji':28,'xing':25,'sum':109},
+				{'id':67,'name':'海姆达尔','huo':25,'jia':33,'ji':23,'xing':28,'sum':109},
+				{'id':68,'name':'虚空之蛇','huo':33,'jia':20,'ji':28,'xing':28,'sum':109},
+				{'id':69,'name':'黑暗泰坦','huo':33,'jia':23,'ji':23,'xing':30,'sum':109},
+				{'id':70,'name':'齐柏林号','huo':28,'jia':33,'ji':20,'xing':33,'sum':114},
+				{'id':71,'name':'星空之门','huo':25,'jia':28,'ji':33,'xing':23,'sum':109},
+				{'id':72,'name':'盖亚号','huo':33,'jia':33,'ji':23,'xing':23,'sum':112},
+				{'id':73,'name':'生命之息','huo':23,'jia':33,'ji':25,'xing':33,'sum':114},
+				{'id':74,'name':'入侵者号','huo':28,'jia':27,'ji':33,'xing':21,'sum':109},
+				{'id':75,'name':'符文方舟','huo':23,'jia':28,'ji':35,'xing':28,'sum':114},
+				{'id':76,'name':'命运之轮','huo':33,'jia':23,'ji':23,'xing':33,'sum':112},
+				{'id':77,'name':'梦想号','huo':30,'jia':23,'ji':23,'xing':38,'sum':114},
+				{'id':78,'name':'落日骑兵','huo':33,'jia':23,'ji':30,'xing':23,'sum':109},
+				{'id':79,'name':'远航者','huo':23,'jia':25,'ji':33,'xing':28,'sum':109},
+				{'id':80,'name':'复仇者','huo':28,'jia':33,'ji':23,'xing':25,'sum':109},
+				{'id':81,'name':'极光','huo':25,'jia':23,'ji':28,'xing':38,'sum':114},
+				{'id':82,'name':'尤弥尔号','huo':30,'jia':33,'ji':23,'xing':23,'sum':109},
+				{'id':83,'name':'伊芙利特','huo':33,'jia':26,'ji':20,'xing':30,'sum':109},
+				{'id':84,'name':'诺姆号','huo':25,'jia':30,'ji':27,'xing':27,'sum':109},
+				{'id':85,'name':'温蒂尼号','huo':27,'jia':27,'ji':25,'xing':30,'sum':109},
+				{'id':86,'name':'希尔芙号','huo':27,'jia':27,'ji':30,'xing':25,'sum':109},
+				{'id':87,'name':'沙拉曼德号','huo':30,'jia':25,'ji':27,'xing':27,'sum':109},
+				{'id':88,'name':'辉光舰','huo':33,'jia':23,'ji':23,'xing':30,'sum':109},
+				{'id':89,'name':'自由行者-X','huo':23,'jia':28,'ji':33,'xing':25,'sum':109},
+				{'id':90,'name':'幽灵船','huo':28,'jia':30,'ji':30,'xing':21,'sum':109},
+				{'id':91,'name':'甲壳虫','huo':23,'jia':33,'ji':25,'xing':28,'sum':109},
+				{'id':92,'name':'巨鲸号','huo':28,'jia':33,'ji':23,'xing':25,'sum':109},
+				{'id':93,'name':'狂暴AI','huo':36,'jia':20,'ji':25,'xing':28,'sum':109},
+				{'id':94,'name':'凯特战舰','huo':38,'jia':25,'ji':28,'xing':23,'sum':114},
+				{'id':95,'name':'战隼-α','huo':28,'jia':25,'ji':33,'xing':23,'sum':109},
+				{'id':96,'name':'战隼-β','huo':33,'jia':23,'ji':28,'xing':25,'sum':109},
+				{'id':97,'name':'幻影战机','huo':23,'jia':25,'ji':38,'xing':28,'sum':114},
+				{'id':98,'name':'暗夜幽魂','huo':30,'jia':20,'ji':38,'xing':26,'sum':114},
+				{'id':99,'name':'神之恩典','huo':20,'jia':30,'ji':26,'xing':38,'sum':114},
+				{'id':100,'name':'阿斯莫德','huo':30,'jia':27,'ji':27,'xing':25,'sum':109},
+				{'id':101,'name':'希望号','huo':23,'jia':38,'ji':30,'xing':23,'sum':114},
+				{'id':102,'name':'阿尔法号','huo':28,'jia':33,'ji':28,'xing':23,'sum':112},
+				{'id':103,'name':'雷神号','huo':31,'jia':23,'ji':27,'xing':31,'sum':112},
+				{'id':104,'name':'扎克号','huo':33,'jia':38,'ji':20,'xing':23,'sum':114},
+				{'id':105,'name':'月神号','huo':25,'jia':33,'ji':30,'xing':26,'sum':114},
+				{'id':106,'name':'达摩克利斯','huo':27,'jia':23,'ji':27,'xing':35,'sum':112},
+				{'id':107,'name':'阿喀琉斯','huo':27,'jia':35,'ji':27,'xing':23,'sum':112},
+				{'id':108,'name':'赫尔墨斯','huo':23,'jia':23,'ji':35,'xing':31,'sum':112},
+				{'id':109,'name':'阿瑞斯','huo':35,'jia':31,'ji':23,'xing':23,'sum':112},
+				{'id':110,'name':'伊甸5号','huo':35,'jia':23,'ji':23,'xing':28,'sum':109},
+				{'id':111,'name':'拉迪克球','huo':33,'jia':33,'ji':23,'xing':25,'sum':114},
+				{'id':112,'name':'普罗达斯','huo':25,'jia':23,'ji':33,'xing':28,'sum':109},
+				{'id':113,'name':'普洛梅号','huo':20,'jia':33,'ji':28,'xing':28,'sum':109},
+				{'id':114,'name':'奥斯特号','huo':30,'jia':25,'ji':27,'xing':27,'sum':109},
+				{'id':115,'name':'命运之石','huo':22,'jia':35,'ji':22,'xing':30,'sum':109},
+				{'id':116,'name':'达格达之锅','huo':22,'jia':30,'ji':22,'xing':35,'sum':109},
+				{'id':117,'name':'努阿达之荣光','huo':30,'jia':22,'ji':35,'xing':22,'sum':109},
+				{'id':118,'name':'布里欧纳克','huo':35,'jia':22,'ji':30,'xing':22,'sum':109},
+				{'id':119,'name':'王之宝藏','huo':28,'jia':27,'ji':26,'xing':28,'sum':109}
+            ],
+			shipSort:[],
+			shipSortKey:[],
+            checked:[],            
+            myTotalAttri: 0,
+			myAttri:{
+                'huo': 6038,
+                'jia': 6557,
+                'ji': 5542,
+                'xing': 5498
+            },
+			myTotalShipAttri: 0,
+			myShipAttri:{
+                'huo': 1191,
+                'jia': 1194,
+                'ji': 994,
+                'xing': 983
+            },
+			selectedshipcount:0,
+			selectedshiphuo:0,
+			selectedshipjia:0,
+			selectedshipji:0,
+			selectedshipxing:0,
+			selectedshipsum:0,
+			selectedshipTotalhuo:0,
+			selectedshipTotaljia:0,
+			selectedshipTotalji:0,
+			selectedshipTotalxing:0,
+			selectedshipTotalsum:0,
+			recordPlan:[],
+			checkedPlan: {},
+            instructionsShow: false
+        },
+        methods:{			
+			//排序
+			sortBySelect(target){
+				let index = this.findIndex(this.shipSortKey, target);
+				
+				if (index > -1) {
+					this.shipSortKey.splice(index, 1);
+				} else {
+					this.shipSortKey.push(target);
+				}
+				this.sortBySortKey();
+			},
+			// 根据排序规则排序
+			sortBySortKey() {
+				if (this.shipSortKey.length >= 1) {
+					this.shipSort.sort(function(a, b){
+						for (let i = 0; i < vue.shipSortKey.length; ++i){
+							let finda = vue.findSortAttri(vue.ship[a], vue.shipSortKey[i]);
+							let findb = vue.findSortAttri(vue.ship[b], vue.shipSortKey[i]);
+							if (finda != findb) {
+								return findb - finda;
+							}
+						}
+						return 0;
+					});
+				} else {
+					this.defaultSortInit();
+				}
+			},
+            // 单项选择、取消
+            chooseOne(target){
+                let index = this.findIndex(this.checked, target);
+                if (index > -1){
+                    this.checked.splice(index, 1);
+                }else{
+                    this.checked.push(target);
+                }
+            },
+            // 多项选择、取消
+            chooseMany(type = 1, num = 10){
+                if (!this.checked.length && !type) {
+                    return false;
+                }
+				if (!this.checked.length) {
+					this.chooseManyDeal(type, parseInt(num));
+					return true;
+				}
+                let last = this.checked[this.checked.length -1];
+
+                // 查找最后一条的索引
+                let lastIndex = this.findIndex(this.shipSort, last.id - 1);
+                if (lastIndex === -1){
+                    return  false;
+                }
+				// 不是排在最后不予操作
+				for (let i = lastIndex + 1; i < this.shipSort.length; ++i) {
+					let target = this.ship[this.shipSort[i]];
+					if (this.findIndex(this.checked, target) > -1) {
+						return false;
+					}
+				}
+                if (!type){
+                    lastIndex -= num;
+                }
+
+                this.chooseManyDeal(type, parseInt(num), lastIndex);
+            },
+            // 多项选择、取消的处理
+            chooseManyDeal(type, num, start = -1){
+                if (start < -1 ){
+                    start = - 1;
+                }
+                for (let i = 1; i <= num; ++i){
+                    let target = this.ship[this.shipSort[start + i]];
+                    if (!target){
+                        break;
+                    }
+
+                    let index = this.findIndex(this.checked, target);
+                    if (index === -1 && type){
+                        this.checked.push(target);
+                    }
+                    if (index > -1 && !type){
+                        this.checked.splice(index, 1);
+                    }
+                }
+            },
+            // 清空选择
+            clearAllChoose(){
+                this.checked = [];
+            },
+			// 清除排序
+			clearSortKey() {
+				this.shipSortKey = [];
+				this.shipSort.sort((a,b)=>{return a - b;});
+			},
+			// 飞船列表恢复初始状态
+			recoverDefaultShipList() {
+				this.shipSortKey = [];
+				this.defaultSortInit();
+			},
+			// 记录当前方案
+			addCurrentChoose() {
+				if (!this.checked.length) {
+					return;
+				}
+				let plan = {};
+				plan.sortText = this.sortConvertShowText(this.shipSortKey);
+				plan.shipChecked = [];
+				for (let i = 0; i < this.checked.length; ++i) {
+					plan.shipChecked.push(this.checked[i].id);
+				}
+				plan.shipSortKey = [];
+				for (let i in this.shipSortKey) {
+					plan.shipSortKey.push(this.shipSortKey[i]);
+				}
+				plan.shipHuo = this.selectedshiphuo;
+				plan.shipJia = this.selectedshipjia;
+				plan.shipJi = this.selectedshipji;
+				plan.shipXing = this.selectedshipxing;
+				plan.shipSum = plan.shipHuo + plan.shipJia + plan.shipJi + plan.shipXing;
+				plan.myAttri = {
+					'huo':vue.myAttri['huo'],
+					'jia':vue.myAttri['jia'],
+					'ji':vue.myAttri['ji'],
+					'xing':vue.myAttri['xing'],
+					'sum':vue.myAttri['huo'] + vue.myAttri['jia'] + vue.myAttri['ji'] + vue.myAttri['xing']
+				};
+				plan.myShipAttri = {
+					'huo':vue.myShipAttri['huo'],
+					'jia':vue.myShipAttri['jia'],
+					'ji':vue.myShipAttri['ji'],
+					'xing':vue.myShipAttri['xing'],
+					'sum':vue.myShipAttri['huo'] + vue.myShipAttri['jia'] + vue.myShipAttri['ji'] + vue.myShipAttri['xing']
+				};
+				this.recordPlan.push(plan);
+			},
+			//使用当前选择方案
+			usedCurrentChoose() {
+				let shipchecked = [];
+				for (let i in this.checked) {
+					shipchecked.push(this.checked[i].id);
+				}
+				this.usedPlanByShiplist(shipchecked);
+			},
+			// 选择方案
+			choosePlan(plan) {
+				this.checkedPlan = plan;
+			},
+			// 删除方案
+			deletePlan(target) {
+				if (!target || !this.recordPlan.length) {
+					return;
+				}
+				let index = this.findIndex(this.recordPlan, target);
+				if (index > -1) {
+					this.recordPlan.splice(index, 1);
+				}
+				this.checkedPlan = {};
+			},
+			// 剔除飞船
+			deletePlanSelectedShip(target) {
+				if (!target || !this.shipSort.length) {
+					return;
+				}
+				for (let i in target.shipChecked) {
+					let index = this.findIndex(this.shipSort, target.shipChecked[i] - 1);
+					if (index > -1) {
+						let checkedIndex = this.findIndex(this.checked, this.ship[this.shipSort[index]]);
+						if (checkedIndex > -1) {
+							this.checked.splice(checkedIndex, 1);
+						}
+						this.shipSort.splice(index, 1);
+					}
+				}
+			},
+			// 查看方案
+			viewPlan(target) {
+				if (!target) {
+					return;
+				}
+				this.checked = [];
+				this.shipSortKey = [];
+				this.myAttri = {
+					'huo':target.myAttri['huo'],
+					'jia':target.myAttri['jia'],
+					'ji':target.myAttri['ji'],
+					'xing':target.myAttri['xing']
+				};
+				this.myShipAttri = {
+					'huo':target.myShipAttri['huo'],
+					'jia':target.myShipAttri['jia'],
+					'ji':target.myShipAttri['ji'],
+					'xing':target.myShipAttri['xing']					
+				};
+				for (let i in target.shipSortKey) {
+					this.shipSortKey.push(target.shipSortKey[i]);
+				}
+				
+				if (target.shipChecked.length) {
+					let addShip = false;
+					for (let i in target.shipChecked) {
+						// 如果飞船不在列表内则添加飞船
+						let index = this.findIndex(this.shipSort, target.shipChecked[i] - 1);
+						if (index == -1) {
+							this.shipSort.push(target.shipChecked[i] - 1);
+							addShip = true;
+						}
+						this.checked.push(this.ship[target.shipChecked[i] - 1]);
+					}
+					if (addShip) {
+						this.sortBySortKey();
+					}
+				}
+			},
+			// 使用该方案
+			usedPlan(target) {
+				if (target) {
+					this.myAttri = {
+						'huo':target.myAttri['huo'],
+						'jia':target.myAttri['jia'],
+						'ji':target.myAttri['ji'],
+						'xing':target.myAttri['xing']
+					};
+					this.myShipAttri = {
+						'huo':target.myShipAttri['huo'],
+						'jia':target.myShipAttri['jia'],
+						'ji':target.myShipAttri['ji'],
+						'xing':target.myShipAttri['xing']					
+					};
+					this.usedPlanByShiplist(target.shipChecked);
+				}
+			},
+			usedPlanByShiplist(shiplist) {
+				if (!shiplist.length) {
+					return;
+				}
+				this.checked = [];
+				this.shipSortKey = [];
+				this.shipSort = [];
+				
+				for (let i in this.ship){
+					let index = this.findIndex(shiplist, this.ship[i].id);
+					if (index > -1) {
+						this.shipSort.push(i);
+						this.checked.push(this.ship[i]);
+					}
+				}
+				this.shipSort.sort((a,b)=>{return a - b;});
+			},
+			// 清空所有方案
+			clearPlan() {
+				this.recordPlan = [];
+				this.checkedPlan = {};
+			},
+			// 获取排序规则文件
+			sortConvertShowText(list){
+				if (!list.length) {
+					return "";
+				}
+				let sortText = "";
+				for (let i in list) {
+					switch (list[i]) {
+					case "huo":
+						sortText += "火力 ";
+						break;
+					case "jia":
+						sortText += "装甲 ";
+						break;
+					case "ji":
+						sortText += "机动 ";
+						break;
+					case "xing":
+						sortText += "幸运 ";
+						break;
+					case "huojia":
+						sortText += "火甲 ";
+						break;
+					case "huoji":
+						sortText += "火机 ";
+						break;
+					case "jiaji":
+						sortText += "甲机 ";
+						break;
+					case "jiaxing":
+						sortText += "甲幸 ";
+						break;
+					case "huojiaji":
+						sortText += "火甲机 ";
+						break;
+					case "huojiaxing":
+						sortText += "火甲幸 ";
+						break;
+					case "sum":
+						sortText += "总和 ";
+						break;
+					default:
+						break;
+					}
+				}
+				return sortText;
+			},
+            // 查找索引
+            findIndex(list, target){
+                for(let i in list){
+                    if (list[i] == target){
+                        return parseInt(i);
+                    }
+                }
+                return -1;
+            },
+			//默认排序
+			defaultSortInit(){
+				this.shipSort = [];
+				for (let i = 0; i < this.ship.length; ++i){
+					this.shipSort.push(i);
+				}
+			},
+			//查找排序属性
+			findSortAttri(item,key){
+				switch (key){
+					case "huo":
+						return item.huo;
+					case "jia":
+						return item.jia;
+					case "ji":
+						return item.ji;
+					case "xing":
+						return item.xing;
+					case "huojia":
+						return item.huo + item.jia;
+					case "huoji":
+						return item.huo + item.ji;
+					case "jiaji":
+						return item.ji + item.jia;
+					case "jiaxing":
+						return item.xing + item.jia;
+					case "huojiaji":
+						return item.huo + item.jia + item.ji;
+					case "huojiaxing":
+						return item.huo + item.jia + item.xing;
+					case "sum":
+						return item.huo + item.jia + item.ji + item.xing;
+					default:
+						return item.id;
+				}
+			},
+			//计算输入总属性
+			getMyTotalAttri() {
+				let attri = this.myAttri;
+                for (let t in attri){
+                    if (!attri[t]){
+                       attri[t] = 0;
+                    }
+                       attri[t] = parseInt(attri[t]);
+                    }
+                let total =  attri['huo'] +
+                        attri['jia'] +
+                        attri['ji'] +
+                        attri['xing'];
+                this.myTotalAttri = total;
+			},
+			//计算输入飞船属性
+			getMyShipTotalAttri() {
+				let attri = this.myShipAttri;
+                    for (let t in attri){
+                        if (!attri[t]){
+                            attri[t] = 0;
+                        }
+                        attri[t] = parseInt(attri[t]);
+                    }
+                    let total =  attri['huo'] +
+                        attri['jia'] +
+                        attri['ji'] +
+                        attri['xing'];
+                    this.myTotalShipAttri = total;
+			},
+			//计算输入飞船属性
+			getSelectShipTotalAttri(){
+				
+				this.selectedshipTotalhuo = this.myAttri['huo'] - this.myShipAttri['huo'] + this.selectedshiphuo;
+				this.selectedshipTotalji = this.myAttri['ji'] - this.myShipAttri['ji'] + this.selectedshipji;
+				this.selectedshipTotaljia = this.myAttri['jia'] - this.myShipAttri['jia'] + this.selectedshipjia;
+				this.selectedshipTotalxing = this.myAttri['xing'] - this.myShipAttri['xing'] + this.selectedshipxing;
+				this.selectedshipTotalsum = this.selectedshipTotalhuo + this.selectedshipTotaljia + this.selectedshipTotalji + this.selectedshipTotalxing;
+			}
+        },
+		created() {
+			this.defaultSortInit();
+			this.getMyTotalAttri();
+			this.getMyShipTotalAttri();
+			this.getSelectShipTotalAttri();
+		},
+        watch:{
+            checked:()=>{
+                vue.selectedshipcount = 0;
+				vue.selectedshiphuo = 0;
+				vue.selectedshipji = 0;
+				vue.selectedshipjia = 0;
+				vue.selectedshipxing = 0;
+				vue.selectedshipsum = 0;
+				
+                vue.checked.map((item)=>{
+                    vue.selectedshipcount += 1;
+                    vue.selectedshiphuo += item.huo;
+					vue.selectedshipji += item.ji;
+					vue.selectedshipjia += item.jia;
+					vue.selectedshipxing += item.xing;
+					vue.selectedshipsum += item.huo + item.ji + item.jia + item.xing;
+					
+                });
+                vue.getSelectShipTotalAttri();
+            },
+            // 计算总属性
+            myAttri:{
+                handler(){
+                    vue.getMyTotalAttri();
+					vue.getSelectShipTotalAttri();
+                },
+                deep: true
+            },
+			//计算飞艇属性
+			myShipAttri:{
+                handler(){
+                    vue.getMyShipTotalAttri();
+					vue.getSelectShipTotalAttri();
+                },
+                deep: true
+            }
+        }
+    });
+</script>
+</html>
+
+
