@@ -523,24 +523,25 @@
 				{'id':116,'name':'达格达之锅','huo':22,'jia':30,'ji':22,'xing':35,'sum':109},
 				{'id':117,'name':'努阿达之荣光','huo':30,'jia':22,'ji':35,'xing':22,'sum':109},
 				{'id':118,'name':'布里欧纳克','huo':35,'jia':22,'ji':30,'xing':22,'sum':109},
-				{'id':119,'name':'王之宝藏','huo':28,'jia':27,'ji':26,'xing':28,'sum':109}
+				{'id':119,'name':'王之宝藏','huo':28,'jia':27,'ji':26,'xing':28,'sum':109},
+				{'id':120,'name':'荣光胜利舰','huo':35,'jia':20,'ji':24,'xing':30,'sum':109}
             ],
 			shipSort:[],
 			shipSortKey:[],
             checked:[],            
             myTotalAttri: 0,
 			myAttri:{
-                'huo': 6038,
-                'jia': 6557,
-                'ji': 5542,
-                'xing': 5498
+                'huo': 6050,
+                'jia': 6725,
+                'ji': 5637,
+                'xing': 5687
             },
 			myTotalShipAttri: 0,
 			myShipAttri:{
-                'huo': 1191,
-                'jia': 1194,
-                'ji': 994,
-                'xing': 983
+                'huo': 1071,
+                'jia': 1174,
+                'ji': 1041,
+                'xing': 1108
             },
 			selectedshipcount:0,
 			selectedshiphuo:0,
@@ -927,6 +928,9 @@
                             attri[t] = 0;
                         }
                         attri[t] = parseInt(attri[t]);
+						if (this.myAttri[t] < attri[t]) {
+							this.myAttri[t] = attri[t];
+						}
                     }
                     let total =  attri['huo'] +
                         attri['jia'] +
